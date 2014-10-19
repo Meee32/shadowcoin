@@ -2462,9 +2462,9 @@ bool LoadBlockIndex(bool fAllowNew)
           vMerkleTree: 26a3ff5d3d 
         */
 
-        const char* pszTimestamp = "www.cryptocoinsnews.com/news/bitlicense-regulations-forked-github-bitcoin-community/2014/07/19";
+        const char* pszTimestamp = "http://www.bbc.co.uk/news/uk-29678989";
         CTransaction txNew;
-        txNew.nTime = 1405769613;
+        txNew.nTime = 1413733696;
         txNew.vin.resize(1);
         txNew.vout.resize(1);
         txNew.vin[0].scriptSig = CScript() << 0 << CBigNum(42) << vector<unsigned char>((const unsigned char*)pszTimestamp, (const unsigned char*)pszTimestamp + strlen(pszTimestamp));
@@ -2475,16 +2475,34 @@ bool LoadBlockIndex(bool fAllowNew)
         block.hashPrevBlock = 0;
         block.hashMerkleRoot = block.BuildMerkleTree();
         block.nVersion = 1;
-        block.nTime    = 1405769613;
+        block.nTime    = 1413733696;
         block.nBits    = bnProofOfWorkLimit.GetCompact();
-        block.nNonce   = !fTestNet ? 261836 : 55887;
+        block.nNonce   = 41032 ;
         
         
+        if (true && (block.GetHash() != hashGenesisBlock)) {
+        // This will figure out a valid hash and Nonce if you're
+        // creating a different genesis block:
+        uint256 hashTarget = CBigNum().SetCompact(block.nBits).getuint256();
+        while (block.GetHash() > hashTarget)
+        {
+        ++block.nNonce;
+        if (block.nNonce == 0)
+        {
+        printf("NONCE WRAPPED, incrementing time");
+        ++block.nTime;
+        }
+        }
+        }
         //// debug print
-        assert(block.hashMerkleRoot == uint256("0x26a3ff5d3dc46b091e7b58b6022982e6d27dff1bab3bd1da6beb4790983c87c4"));
         block.print();
+        printf("block.GetHash() == %s\n", block.GetHash().ToString().c_str());
+        printf("block.hashMerkleRoot == %s\n", block.hashMerkleRoot.ToString().c_str());
+        printf("block.nTime = %u \n", block.nTime);
+        printf("block.nNonce = %u \n", block.nNonce);
+        assert(block.hashMerkleRoot == uint256("f9bdb1ca96bf1c30aaca2b64a0c1df2927831e1308678202c12801406385f594"));
         assert(block.GetHash() == (!fTestNet ? hashGenesisBlock : hashGenesisBlockTestNet));
-        assert(block.CheckBlock());
+
 
         // Start new block file
         unsigned int nFile;
