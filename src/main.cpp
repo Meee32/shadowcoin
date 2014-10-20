@@ -1984,20 +1984,22 @@ printf("GetCoinAge::%s\n", ToString().c_str());
         CBlock block;
         if (!block.ReadFromDisk(txindex.pos.nFile, txindex.pos.nBlockPos, false))
             return false; // unable to read block of previous transaction
-        if (block.GetBlockTime() + nStakeMinAge > nTime)
+
+        unsigned int nPrevTime = block.GetBlockTime();
+        if (nPrevTime + nStakeMinAge > nTxTime || nTxTime < nPrevTime)
             continue; // only count coins meeting min age requirement
 
         int64_t nValueIn = txPrev.vout[txin.prevout.n].nValue;
         nCoinValue += nValueIn;
 
-        uint64_t nDilatedAge;
-        if (ApplyTimeDilation(txPrev.nTime, nTxTime, nDilatedAge))
+        uint64 nDilatedAge;
+        if (ApplyTimeDilation(nPrevTime, nTxTime, nDilatedAge))
            bnCentSecond += CBigNum(nValueIn) * nDilatedAge / CENT;
         else
-        bnCentSecond += CBigNum(nValueIn) * (nTime-txPrev.nTime) / CENT;
+        bnCentSecond += CBigNum(nValueIn) * (nTxTime-nPrevTime) / CENT;
 
         if (fDebug && GetBoolArg("-printcoinage"))
-            printf("coin age nValueIn=%"PRId64" nTimeDiff=%d bnCentSecond=%s\n", nValueIn, nTime - txPrev.nTime, bnCentSecond.ToString().c_str());
+            printf("coin age nValueIn=%"PRId64" nTimeDiff=%d bnCentSecond=%s\n", nValueIn, nTxTime - nPrevTime, bnCentSecond.ToString().c_str());
     }
 
     CBigNum bnCoinDay = bnCentSecond * CENT / COIN / (24 * 60 * 60);
