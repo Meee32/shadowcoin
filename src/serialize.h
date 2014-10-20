@@ -18,6 +18,8 @@
 
 #include <boost/type_traits/is_fundamental.hpp>
 #include <boost/tuple/tuple.hpp>
+#include <boost/tuple/tuple_comparison.hpp>
+#include <boost/tuple/tuple_io.hpp>
 
 #include "allocators.h"
 #include "version.h"
@@ -25,6 +27,9 @@
 class CAutoFile;
 class CDataStream;
 class CScript;
+
+typedef long long  int64;
+typedef unsigned long long  uint64;
 
 static const unsigned int MAX_SIZE = 0x02000000;
 

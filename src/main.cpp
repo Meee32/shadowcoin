@@ -15,7 +15,9 @@
 #include <boost/algorithm/string/replace.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/fstream.hpp>
-
+#include <boost/random/mersenne_twister.hpp>
+#include <boost/random/uniform_int.hpp>
+#include <cmath>
 
 using namespace std;
 using namespace boost;
@@ -40,11 +42,11 @@ CBigNum bnProofOfStakeLimit(~uint256(0) >> 20);
 CBigNum bnProofOfWorkLimitTestNet(~uint256(0) >> 16);
 
 unsigned int nTargetSpacing     = 60;               // 60 seconds
-unsigned int nStakeMinAge       = 8 * 60 * 60;      // 8 hours
-unsigned int nStakeMaxAge       = -1;               // unlimited
+unsigned int nStakeMinAge       = 1 * 60 * 60;      // 1 hour
+unsigned int nStakeMaxAge       = 2592000;          // 30 days
 unsigned int nModifierInterval  = 10 * 60;          // time to elapse before new modifier is computed
 
-int nCoinbaseMaturity = 500;
+int nCoinbaseMaturity = 40;
 CBlockIndex* pindexGenesisBlock = NULL;
 int nBestHeight = -1;
 
@@ -960,33 +962,136 @@ uint256 WantedByOrphan(const CBlock* pblockOrphan)
     return pblockOrphan->hashPrevBlock;
 }
 
-// miner's coin base reward
-int64_t GetProofOfWorkReward(int nHeight, int64_t nFees)
+static const long hextable[] =
 {
-    int64_t nSubsidy = 0;
-    
-    if (nHeight <= 0)
-        nSubsidy = 0;
-    else
-    if (nHeight <= LAST_FAIR_LAUNCH_BLOCK) 
-        nSubsidy = 1 * COIN;
-    else
-    if (nHeight <= LAST_POW_BLOCK)
-        nSubsidy = 400 * COIN;
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,		// 10-19
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,		// 30-39
+    -1, -1, -1, -1, -1, -1, -1, -1,  0,  1,
+     2,  3,  4,  5,  6,  7,  8,  9, -1, -1,		// 50-59
+    -1, -1, -1, -1, -1, 10, 11, 12, 13, 14,
+    15, -1, -1, -1, -1, -1, -1, -1, -1, -1,		// 70-79
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, 10, 11, 12,		// 90-99
+    13, 14, 15, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,		// 110-109
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,		// 130-139
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,		// 150-159
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,		// 170-179
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,		// 190-199
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,		// 210-219
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,		// 230-239
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1
+};
 
-    if (fDebug && GetBoolArg("-printcreation"))
-        printf("GetProofOfWorkReward() : create=%s nSubsidy=%"PRId64"\n", FormatMoney(nSubsidy).c_str(), nSubsidy);
 
-    return nSubsidy + nFees;
+long hex2long(const char* hexString)
+{
+    long ret = 0;
+
+    while (*hexString && ret >= 0)
+    {
+        ret = (ret << 4) | hextable[*hexString++];
+    }
+
+    return ret;
 }
 
-// miner's coin stake reward based on coin age spent (coin-days)
-int64_t GetProofOfStakeReward(int64_t nCoinAge, int64_t nFees)
+int static generateMTRandom(unsigned int s, int range)
 {
-    int64_t nSubsidy = nCoinAge * COIN_YEAR_REWARD * 33 / (365 * 33 + 8);
+    random::mt19937 gen(s);
+    random::uniform_int_distribution<> dist(1, range);
+    return dist(gen);
+}
+
+// miner's coin base reward
+int64_t GetProofOfWorkReward(int nHeight, int64_t nFees, uint256 prevHash)
+{
+    // normal payout
+        int64_t nSubsidy = 200 * COIN;
+
+        std::string cseed_str = prevHash.ToString().substr(5,7);
+        const char* cseed = cseed_str.c_str();
+        long seed = hex2long(cseed);
+        int rand = generateMTRandom(seed, 6000);
+
+        if(rand > 2000 && rand < 2101)
+        {
+            nSubsidy *= 8;
+        }
+
+        // Subsidy is cut in half every 129,600 blocks, which will occur approximately every 3 months
+        nSubsidy >>= (nHeight / 129600);
+
+        return nSubsidy + nFees;
+}
+
+// Netcoin: PERSONALISED INTEREST RATE CALCULATION
+// madprofezzor@gmail.com
+// returns an integer between 0 and PIR_PHASES-1 representing which PIR phase the supplied block height falls into
+int GetPIRRewardPhase(int64_t nHeight)
+{
+   int phase = (int)(nHeight / PIR_PHASEBLOCKS);
+   return min(PIR_PHASES-1, max(0,phase) );
+}
+
+int64_t GetPIRRewardCoinYear(int64_t nCoinValue, int64_t nHeight)
+{
+    // work out which phase rates we should use, based on the block height
+    int nPhase = GetPIRRewardPhase(nHeight);
+
+    // find the % band that contains the staked value
+    if (nCoinValue >= PIR_THRESHOLDS[PIR_LEVELS-1] * COIN)
+        return PIR_RATES[nPhase][PIR_LEVELS-1]  * CENT;
+
+    int nLevel = 0;
+    for (int i = 1; i<PIR_LEVELS; i++)
+    {
+        if (nCoinValue < PIR_THRESHOLDS[i] * COIN)
+        {
+                nLevel = i-1;
+                break;
+        };
+    };
+
+
+    // interpolate the PIR for this staked value
+    // a simple way to interpolate this using integer math is to break the range into 100 slices and find the slice where our coin value lies
+    // Rates and Thresholds are integers, CENT and COIN are multiples of 100, so using 100 slices does not introduce any integer math rounding errors
+
+
+    int64_t nLevelRatePerSlice = (( PIR_RATES[nPhase][nLevel+1] - PIR_RATES[nPhase][nLevel] ) * CENT )  / 100;
+    int64_t nLevelValuePerSlice = (( PIR_THRESHOLDS[nLevel+1] - PIR_THRESHOLDS[nLevel] ) * COIN ) / 100;
+
+    int64_t nTestValue = PIR_THRESHOLDS[nLevel] * COIN;
+
+    int64_t nRewardCoinYear = PIR_RATES[nPhase][nLevel] * CENT;
+    while (nTestValue < nCoinValue)
+    {
+        nTestValue += nLevelValuePerSlice;
+        nRewardCoinYear += nLevelRatePerSlice;
+    };
+
+    return nRewardCoinYear;
+}
+
+int64_t GetProofOfStakeReward(int64_t nCoinAge, int64_t nCoinValue,  int64_t nFees, int64_t nHeight)
+{
+
+    int64_t nRewardCoinYear = GetPIRRewardCoinYear(nCoinValue, nHeight);
+
+    int64_t nSubsidy = nCoinAge * nRewardCoinYear * 33 / (365 * 33 + 8); //integer equivalent of nCoinAge * nRewardCoinYear / 365.2424242..
 
     if (fDebug && GetBoolArg("-printcreation"))
-        printf("GetProofOfStakeReward(): create=%s nCoinAge=%"PRId64"\n", FormatMoney(nSubsidy).c_str(), nCoinAge);
+        printf("GetProofOfStakeReward(): PIR=%.1f create=%s nCoinAge=%"PRId64" nCoinValue=%s nFees=%"PRId64"\n", (double)nRewardCoinYear/(double)CENT, FormatMoney(nSubsidy).c_str(), nCoinAge, FormatMoney(nCoinValue).c_str(), nFees);
 
     return nSubsidy + nFees;
 }
@@ -1503,9 +1608,15 @@ bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex, bool fJustCheck)
         mapQueuedChanges[hashTx] = CTxIndex(posThisTx, tx.vout.size());
     }
 
+    uint256 prevHash = 0;
+    if(pindex->pprev)
+    {
+        prevHash = pindex->pprev->GetBlockHash();
+    }
+
     if (IsProofOfWork())
     {
-        int64_t nReward = GetProofOfWorkReward(pindex->nHeight, nFees);
+        int64_t nReward = GetProofOfWorkReward(pindex->nHeight, nFees, prevHash);
         // Check coinbase reward
         if (vtx[0].GetValueOut() > nReward)
             return DoS(50, error("ConnectBlock() : coinbase reward exceeded (actual=%"PRId64" vs calculated=%"PRId64")",
@@ -1516,10 +1627,11 @@ bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex, bool fJustCheck)
     {
         // ppcoin: coin stake tx earns reward instead of paying fee
         uint64_t nCoinAge;
-        if (!vtx[1].GetCoinAge(txdb, nCoinAge))
+        int64_t nCoinValue;
+        if (!vtx[1].GetCoinAge(txdb, nTime, nCoinAge, nCoinValue))
             return error("ConnectBlock() : %s unable to get coin age for coinstake", vtx[1].GetHash().ToString().substr(0,10).c_str());
 
-        int64_t nCalculatedStakeReward = GetProofOfStakeReward(nCoinAge, nFees);
+        int64_t nCalculatedStakeReward = GetProofOfStakeReward(nCoinAge, nCoinValue, nFees, pindex->nHeight);
 
         if (nStakeReward > nCalculatedStakeReward)
             return DoS(100, error("ConnectBlock() : coinstake pays too much(actual=%"PRId64" vs calculated=%"PRId64")", nStakeReward, nCalculatedStakeReward));
@@ -1803,6 +1915,44 @@ bool CBlock::SetBestChain(CTxDB& txdb, CBlockIndex* pindexNew)
     return true;
 }
 
+//netcoin - fresh coins age faster than older coins
+// madprofezzor@gmail.com (who)
+// this should encourage and reward users who attempt to maintain full nodes
+// and increase the overall network security
+// Coin Age is subjected to the following Time-Dilation function to make this happen
+//
+static const double timeDilationCoeff = 0.693147180559945309417/((double)COINAGE_TIME_DILATION_HALFLIFE_DAYS * 24.0 * 60.0 * 60.0);
+static const uint64 secondsAtFullReward = ((uint64)COINAGE_FULL_REWARD_DAYS * 24 * 60 * 60);
+
+bool ApplyTimeDilation(uint64 timeReceived, uint64 timeStaked, uint64& nDilatedCoinAge){
+    nDilatedCoinAge = 0;
+    uint64 timeDilationStarts = timeReceived + secondsAtFullReward;
+    if (timeStaked > timeDilationStarts)
+    {
+        nDilatedCoinAge = secondsAtFullReward +
+                (uint64)((1.0 / timeDilationCoeff) * (1.0 - exp(-timeDilationCoeff * (double)(timeStaked - timeDilationStarts))));
+
+        if (fDebug && GetBoolArg("-printcoinage"))
+            printf("staked coins are %.3f days old. POS reward reduces by %.3f percent",
+                   (double)(timeStaked-timeReceived)/(24.0*60.0*60.0),
+                   100.0 - (double)(nDilatedCoinAge * 100.0) / (double)(timeStaked-timeReceived)
+                   );
+
+        // sanity check. Dilation should produce a positive value <= the elapsed time between receiving and staking
+        nDilatedCoinAge = max(min(nDilatedCoinAge, timeStaked-timeReceived),(uint64)0);
+        return true;
+    }
+    else
+    {
+        if (fDebug && GetBoolArg("-printcoinage"))
+            printf("staked coins are younger than live wallet reward target. full coinage applies to reward");
+
+        nDilatedCoinAge = max((timeStaked-timeReceived),(uint64)0);
+        return false;
+    }
+
+}
+
 // ppcoin: total coin age spent in transaction, in the unit of coin-days.
 // Only those coins meeting minimum age requirement counts. As those
 // transactions not in main chain are not currently indexed so we
@@ -1810,11 +1960,13 @@ bool CBlock::SetBestChain(CTxDB& txdb, CBlockIndex* pindexNew)
 // guaranteed to be in main chain by sync-checkpoint. This rule is
 // introduced to help nodes establish a consistent view of the coin
 // age (trust score) of competing branches.
-bool CTransaction::GetCoinAge(CTxDB& txdb, uint64_t& nCoinAge) const
+bool CTransaction::GetCoinAge(CTxDB& txdb, unsigned int nTxTime, uint64_t& nCoinAge, int64_t& nCoinValue) const
 {
     CBigNum bnCentSecond = 0;  // coin age in the unit of cent-seconds
     nCoinAge = 0;
+    nCoinValue = 0;
 
+printf("GetCoinAge::%s\n", ToString().c_str());
     if (IsCoinBase())
         return true;
 
@@ -1836,6 +1988,12 @@ bool CTransaction::GetCoinAge(CTxDB& txdb, uint64_t& nCoinAge) const
             continue; // only count coins meeting min age requirement
 
         int64_t nValueIn = txPrev.vout[txin.prevout.n].nValue;
+        nCoinValue += nValueIn;
+
+        uint64_t nDilatedAge;
+        if (ApplyTimeDilation(txPrev.nTime, nTxTime, nDilatedAge))
+           bnCentSecond += CBigNum(nValueIn) * nDilatedAge / CENT;
+        else
         bnCentSecond += CBigNum(nValueIn) * (nTime-txPrev.nTime) / CENT;
 
         if (fDebug && GetBoolArg("-printcoinage"))
@@ -1858,7 +2016,8 @@ bool CBlock::GetCoinAge(uint64_t& nCoinAge) const
     BOOST_FOREACH(const CTransaction& tx, vtx)
     {
         uint64_t nTxCoinAge;
-        if (tx.GetCoinAge(txdb, nTxCoinAge))
+        int64_t nCoinValue;
+        if (tx.GetCoinAge(txdb, nTime, nTxCoinAge, nCoinValue))
             nCoinAge += nTxCoinAge;
         else
             return false;
