@@ -41,11 +41,11 @@ CBigNum bnProofOfStakeLimit(~uint256(0) >> 20);
 CBigNum bnProofOfWorkLimitTestNet(~uint256(0) >> 16);
 
 unsigned int nTargetSpacing     = 60;               // 60 seconds
-unsigned int nStakeMinAge       = 8 * 60 * 60;      // 8 hours
-unsigned int nStakeMaxAge       = -1;               // unlimited
+unsigned int nStakeMinAge       = 1 * 60 * 60;      // 1 hour
+unsigned int nStakeMaxAge       = 2592000;          // 30 Days
 unsigned int nModifierInterval  = 10 * 60;          // time to elapse before new modifier is computed
 
-int nCoinbaseMaturity = 500;
+int nCoinbaseMaturity = 40;
 CBlockIndex* pindexGenesisBlock = NULL;
 int nBestHeight = -1;
 
@@ -1033,13 +1033,64 @@ int64_t GetProofOfWorkReward(int nHeight, int64_t nFees, uint256 prevHash)
         return nSubsidy + nFees;
 }
 
-// miner's coin stake reward based on coin age spent (coin-days)
-int64_t GetProofOfStakeReward(int64_t nCoinAge, int64_t nFees)
+// Netcoin: PERSONALISED INTEREST RATE CALCULATION
+// madprofezzor@gmail.com
+// returns an integer between 0 and PIR_PHASES-1 representing which PIR phase the supplied block height falls into
+int GetPIRRewardPhase(int64_t nHeight)
 {
-    int64_t nSubsidy = nCoinAge * COIN_YEAR_REWARD * 33 / (365 * 33 + 8);
+   int phase = (int)(nHeight / PIR_PHASEBLOCKS);
+   return min(PIR_PHASES-1, max(0,phase) );
+}
+
+int64_t GetPIRRewardCoinYear(int64_t nCoinValue, int64_t nHeight)
+{
+    // work out which phase rates we should use, based on the block height
+    int nPhase = GetPIRRewardPhase(nHeight);
+
+    // find the % band that contains the staked value
+    if (nCoinValue >= PIR_THRESHOLDS[PIR_LEVELS-1] * COIN)
+        return PIR_RATES[nPhase][PIR_LEVELS-1]  * CENT;
+
+    int nLevel = 0;
+    for (int i = 1; i<PIR_LEVELS; i++)
+    {
+        if (nCoinValue < PIR_THRESHOLDS[i] * COIN)
+        {
+                nLevel = i-1;
+                break;
+        };
+    };
+
+
+    // interpolate the PIR for this staked value
+    // a simple way to interpolate this using integer math is to break the range into 100 slices and find the slice where our coin value lies
+    // Rates and Thresholds are integers, CENT and COIN are multiples of 100, so using 100 slices does not introduce any integer math rounding errors
+
+
+    int64_t nLevelRatePerSlice = (( PIR_RATES[nPhase][nLevel+1] - PIR_RATES[nPhase][nLevel] ) * CENT )  / 100;
+    int64_t nLevelValuePerSlice = (( PIR_THRESHOLDS[nLevel+1] - PIR_THRESHOLDS[nLevel] ) * COIN ) / 100;
+
+    int64_t nTestValue = PIR_THRESHOLDS[nLevel] * COIN;
+
+    int64_t nRewardCoinYear = PIR_RATES[nPhase][nLevel] * CENT;
+    while (nTestValue < nCoinValue)
+    {
+        nTestValue += nLevelValuePerSlice;
+        nRewardCoinYear += nLevelRatePerSlice;
+    };
+
+    return nRewardCoinYear;
+}
+
+int64_t GetProofOfStakeReward(int64_t nCoinAge, int64_t nCoinValue,  int64_t nFees, int64_t nHeight)
+{
+
+    int64_t nRewardCoinYear = GetPIRRewardCoinYear(nCoinValue, nHeight);
+
+    int64_t nSubsidy = nCoinAge * nRewardCoinYear * 33 / (365 * 33 + 8); //integer equivalent of nCoinAge * nRewardCoinYear / 365.2424242..
 
     if (fDebug && GetBoolArg("-printcreation"))
-        printf("GetProofOfStakeReward(): create=%s nCoinAge=%"PRId64"\n", FormatMoney(nSubsidy).c_str(), nCoinAge);
+        printf("GetProofOfStakeReward(): PIR=%.1f create=%s nCoinAge=%"PRId64" nCoinValue=%s nFees=%"PRId64"\n", (double)nRewardCoinYear/(double)CENT, FormatMoney(nSubsidy).c_str(), nCoinAge, FormatMoney(nCoinValue).c_str(), nFees);
 
     return nSubsidy + nFees;
 }
@@ -1574,10 +1625,11 @@ bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex, bool fJustCheck)
     {
         // ppcoin: coin stake tx earns reward instead of paying fee
         uint64_t nCoinAge;
-        if (!vtx[1].GetCoinAge(txdb, nCoinAge))
+        int64_t nCoinValue;
+        if (!vtx[1].GetCoinAge(txdb, nTime, nCoinAge, nCoinValue))
             return error("ConnectBlock() : %s unable to get coin age for coinstake", vtx[1].GetHash().ToString().substr(0,10).c_str());
 
-        int64_t nCalculatedStakeReward = GetProofOfStakeReward(nCoinAge, nFees);
+        int64_t nCalculatedStakeReward = GetProofOfStakeReward(nCoinAge, nCoinValue, nFees, pindex->nHeight);
 
         if (nStakeReward > nCalculatedStakeReward)
             return DoS(100, error("ConnectBlock() : coinstake pays too much(actual=%"PRId64" vs calculated=%"PRId64")", nStakeReward, nCalculatedStakeReward));
@@ -1868,11 +1920,13 @@ bool CBlock::SetBestChain(CTxDB& txdb, CBlockIndex* pindexNew)
 // guaranteed to be in main chain by sync-checkpoint. This rule is
 // introduced to help nodes establish a consistent view of the coin
 // age (trust score) of competing branches.
-bool CTransaction::GetCoinAge(CTxDB& txdb, uint64_t& nCoinAge) const
+bool CTransaction::GetCoinAge(CTxDB& txdb, unsigned int nTxTime, uint64_t& nCoinAge, int64_t& nCoinValue) const
 {
     CBigNum bnCentSecond = 0;  // coin age in the unit of cent-seconds
     nCoinAge = 0;
+    nCoinValue = 0;
 
+    printf("GetCoinAge::%s\n", ToString().c_str());
     if (IsCoinBase())
         return true;
 
@@ -1916,7 +1970,8 @@ bool CBlock::GetCoinAge(uint64_t& nCoinAge) const
     BOOST_FOREACH(const CTransaction& tx, vtx)
     {
         uint64_t nTxCoinAge;
-        if (tx.GetCoinAge(txdb, nTxCoinAge))
+        int64_t nCoinValue;
+        if (tx.GetCoinAge(txdb, nTime, nTxCoinAge, nCoinValue))
             nCoinAge += nTxCoinAge;
         else
             return false;
