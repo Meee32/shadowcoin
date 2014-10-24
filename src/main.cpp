@@ -1913,6 +1913,43 @@ bool CBlock::SetBestChain(CTxDB& txdb, CBlockIndex* pindexNew)
     return true;
 }
 
+//netcoin - fresh coins age faster than older coins
+// madprofezzor@gmail.com (who)
+// this should encourage and reward users who attempt to maintain full nodes
+// and increase the overall network security
+// Coin Age is subjected to the following Time-Dilation function to make this happen
+//
+static const double timeDilationCoeff = 0.693147180559945309417/((double)COINAGE_TIME_DILATION_HALFLIFE_DAYS * 24.0 * 60.0 * 60.0);
+static const uint64_t secondsAtFullReward = ((uint64_t)COINAGE_FULL_REWARD_DAYS * 24 * 60 * 60);
+
+bool ApplyTimeDilation(uint64_t timeReceived, uint64_t timeStaked, uint64_t& nDilatedCoinAge){
+    nDilatedCoinAge = 0;
+    uint64_t timeDilationStarts = timeReceived + secondsAtFullReward;
+    if (timeStaked > timeDilationStarts)
+    {
+        nDilatedCoinAge = secondsAtFullReward +
+                (uint64_t)((1.0 / timeDilationCoeff) * (1.0 - exp(-timeDilationCoeff * (double)(timeStaked - timeDilationStarts))));
+
+        if (fDebug && GetBoolArg("-printcoinage"))
+            printf("staked coins are %.3f days old. POS reward reduces by %.3f percent",
+                   (double)(timeStaked-timeReceived)/(24.0*60.0*60.0),
+                   100.0 - (double)(nDilatedCoinAge * 100.0) / (double)(timeStaked-timeReceived)
+                   );
+
+        // sanity check. Dilation should produce a positive value <= the elapsed time between receiving and staking
+        nDilatedCoinAge = max(min(nDilatedCoinAge, timeStaked-timeReceived),(uint64_t)0);
+        return true;
+    }
+    else
+    {
+        if (fDebug && GetBoolArg("-printcoinage"))
+            printf("staked coins are younger than live wallet reward target. full coinage applies to reward");
+
+        nDilatedCoinAge = max((timeStaked-timeReceived),(uint64_t)0);
+        return false;
+    }
+
+}
 // ppcoin: total coin age spent in transaction, in the unit of coin-days.
 // Only those coins meeting minimum age requirement counts. As those
 // transactions not in main chain are not currently indexed so we
@@ -1948,6 +1985,12 @@ bool CTransaction::GetCoinAge(CTxDB& txdb, unsigned int nTxTime, uint64_t& nCoin
             continue; // only count coins meeting min age requirement
 
         int64_t nValueIn = txPrev.vout[txin.prevout.n].nValue;
+        nCoinValue += nValueIn;
+
+        uint64_t nDilatedAge;
+        if (ApplyTimeDilation(txPrev.nTime, nTxTime, nDilatedAge))
+           bnCentSecond += CBigNum(nValueIn) * nDilatedAge / CENT;
+        else
         bnCentSecond += CBigNum(nValueIn) * (nTime-txPrev.nTime) / CENT;
 
         if (fDebug && GetBoolArg("-printcoinage"))

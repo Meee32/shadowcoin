@@ -59,6 +59,9 @@ inline bool MoneyRange(int64_t nValue) { return (nValue >= 0 && nValue <= MAX_MO
 // Threshold for nLockTime: below this value it is interpreted as block number, otherwise as UNIX timestamp.
 static const unsigned int LOCKTIME_THRESHOLD = 500000000; // Tue Nov  5 00:53:20 1985 UTC
 
+// netcoin Coin Age uses a diminishing returns rule to encourage and reward frequent staking attempts
+static const int COINAGE_TIME_DILATION_HALFLIFE_DAYS = 90;
+static const int COINAGE_FULL_REWARD_DAYS = 30;
 
 static const uint256 hashGenesisBlock("0x00000eca234f07edc98aaf3f2a7b7478dc58992a9cd439323d099c6a590ca2bb");
 static const uint256 hashGenesisBlockTestNet("0x00000cf700c1b322aac7900c18aa97085edc21131ec7c1b55b0e9322ebfcbdc0");
