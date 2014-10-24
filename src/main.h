@@ -35,33 +35,12 @@ static const unsigned int MAX_INV_SZ = 50000;
 static const int64_t MIN_TX_FEE = 100000;
 static const int64_t MIN_RELAY_TX_FEE = MIN_TX_FEE;
 static const int64_t MAX_MONEY = 2000000000 * COIN;
-
-static const int PIR_LEVELS = 6; // number of entries in PIR_THRESHOLDS
-static const int PIR_PHASES = 3;
-static const int64_t PIR_PHASEBLOCKS = 365 * 24 * 60; // one year for each phase
-
-static const int64_t PIR_THRESHOLDS[PIR_LEVELS] = {
-    0,
-    1000,
-    10000,
-    100000,
-    1000000,
-    10000000
-}; // unit is netcoins.  Must start with 0
-
-static const int64_t PIR_RATES[PIR_PHASES][PIR_LEVELS] = {
-        {10,15,20,30,80,100},   // Year 1
-        {20,25,30,35,40,45 },   // Year 2
-        {20,22,24,26,28,30 }    // Year 3+
-};
+static const int64_t COIN_YEAR_REWARD = 2 * CENT; // 2% per year
 
 inline bool MoneyRange(int64_t nValue) { return (nValue >= 0 && nValue <= MAX_MONEY); }
 // Threshold for nLockTime: below this value it is interpreted as block number, otherwise as UNIX timestamp.
 static const unsigned int LOCKTIME_THRESHOLD = 500000000; // Tue Nov  5 00:53:20 1985 UTC
 
-// netcoin Coin Age uses a diminishing returns rule to encourage and reward frequent staking attempts
-static const int COINAGE_TIME_DILATION_HALFLIFE_DAYS = 90;
-static const int COINAGE_FULL_REWARD_DAYS = 30;
 
 static const uint256 hashGenesisBlock("0x00000eca234f07edc98aaf3f2a7b7478dc58992a9cd439323d099c6a590ca2bb");
 static const uint256 hashGenesisBlockTestNet("0x00000cf700c1b322aac7900c18aa97085edc21131ec7c1b55b0e9322ebfcbdc0");
@@ -128,11 +107,10 @@ bool LoadExternalBlockFile(FILE* fileIn);
 
 bool CheckProofOfWork(uint256 hash, unsigned int nBits);
 unsigned int GetNextTargetRequired(const CBlockIndex* pindexLast, bool fProofOfStake);
-int64_t GetProofOfWorkReward(int nHeight, int64_t nFees, uint256 prevHash);
-int64_t GetProofOfStakeReward(int64_t nCoinAge, int64_t nCoinValue, int64_t nFees, int64_t nHeight);
+int64_t GetProofOfWorkReward(int nHeight, int64_t nFees);
+int64_t GetProofOfStakeReward(int64_t nCoinAge, int64_t nFees);
 unsigned int ComputeMinWork(unsigned int nBase, int64_t nTime);
 unsigned int ComputeMinStake(unsigned int nBase, int64_t nTime, unsigned int nBlockTime);
-int64_t GetPIRRewardCoinYear(int64_t nCoinValue, int64_t nHeight);
 int GetNumBlocksOfPeers();
 bool IsInitialBlockDownload();
 std::string GetWarnings(std::string strFor);
@@ -708,7 +686,7 @@ public:
                        const CBlockIndex* pindexBlock, bool fBlock, bool fMiner);
     bool CheckTransaction() const;
     bool AcceptToMemoryPool(CTxDB& txdb, bool* pfMissingInputs=NULL);
-    bool GetCoinAge(CTxDB& txdb, unsigned int nTxTime, uint64_t& nCoinAge, int64_t &nCoinValue) const;  // ppcoin: get transaction coin age
+    bool GetCoinAge(CTxDB& txdb, uint64_t& nCoinAge) const;  // ppcoin: get transaction coin age
 
 protected:
     const CTxOut& GetOutputFor(const CTxIn& input, const MapPrevTx& inputs) const;

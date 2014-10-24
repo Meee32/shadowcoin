@@ -27,7 +27,6 @@
 class CAutoFile;
 class CDataStream;
 class CScript;
-
 typedef long long  int64;
 typedef unsigned long long  uint64;
 
