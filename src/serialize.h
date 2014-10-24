@@ -27,8 +27,6 @@
 class CAutoFile;
 class CDataStream;
 class CScript;
-typedef long long  int64;
-typedef unsigned long long  uint64;
 
 static const unsigned int MAX_SIZE = 0x02000000;
 
