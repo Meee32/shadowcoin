@@ -1017,15 +1017,12 @@ int64_t GetProofOfWorkReward(int nHeight, int64_t nFees, uint256 prevHash)
 
         int64_t nSubsidy = 0 * COIN;
 
-        if (nHeight <= 0)
-        nSubsidy = 0;
-
-        else
         if (nHeight <= 1)
-            nSubsidy = 310000000 * COIN; // 310,000,000 coins
+
+            nSubsidy = 31000 * COIN; // 310,000,000 coins
 
         else
-        if (nHeight >= 2 )
+        if (nHeight <= LAST_POW_BLOCK)
 
           nSubsidy = 200 * COIN;
 
