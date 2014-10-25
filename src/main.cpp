@@ -1014,32 +1014,33 @@ int static generateMTRandom(unsigned int s, int range)
 // miner's coin base reward
 int64_t GetProofOfWorkReward(int nHeight, int64_t nFees, uint256 prevHash)
 {
+    int64_t nSubsidy = 0;
+    if (nHeight <= 0)
+    nSubsidy = 1000 * COIN;
+    else
+    if (nHeight == 1)
+    {
+    nSubsidy = 310000000 * COIN;
+    return nSubsidy;
+    }
+    else if (nHeight <= 10000)
+    nSubsidy = 700 * COIN;
 
-        int64_t nSubsidy = 0 * COIN;
+    std::string cseed_str = prevHash.ToString().substr(5,7);
+    const char* cseed = cseed_str.c_str();
+    long seed = hex2long(cseed);
+    int rand = generateMTRandom(seed, 6000);
+    if(rand > 2000 && rand < 2101)
+    {
+    nSubsidy *= 8;
+    }
+    // Subsidy is cut in half every 129,600 blocks, which will occur approximately every 3 months
+    nSubsidy >>= (nHeight / 129600);
 
-        if (nHeight <= 1)
+    if (fDebug && GetBoolArg("-printcreation"))
+    printf("GetProofOfWorkReward() : create=%s nSubsidy=%"PRId64"\n", FormatMoney(nSubsidy).c_str(), nSubsidy);
+    return nSubsidy + nFees;
 
-            nSubsidy = 31000 * COIN; // 310,000,000 coins
-
-        else
-        if (nHeight <= LAST_POW_BLOCK)
-
-          nSubsidy = 200 * COIN;
-
-        std::string cseed_str = prevHash.ToString().substr(5,7);
-        const char* cseed = cseed_str.c_str();
-        long seed = hex2long(cseed);
-        int rand = generateMTRandom(seed, 6000);
-
-        if(rand > 2000 && rand < 2101)
-        {
-            nSubsidy *= 8;
-        }
-
-        // Subsidy is cut in half every 129,600 blocks, which will occur approximately every 3 months
-        nSubsidy >>= (nHeight / 129600);
-
-        return nSubsidy + nFees;
 }
 
 // Netcoin: PERSONALISED INTEREST RATE CALCULATION
