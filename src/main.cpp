@@ -1017,6 +1017,9 @@ int64_t GetProofOfWorkReward(int nHeight, int64_t nFees, uint256 prevHash)
     // normal payout
         int64_t nSubsidy = 200 * COIN;
 
+        if (nHeight = 1)
+                nSubsidy = 32000000;
+
         std::string cseed_str = prevHash.ToString().substr(5,7);
         const char* cseed = cseed_str.c_str();
         long seed = hex2long(cseed);
