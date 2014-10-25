@@ -1017,10 +1017,17 @@ int64_t GetProofOfWorkReward(int nHeight, int64_t nFees, uint256 prevHash)
 
         int64_t nSubsidy = 0 * COIN;
 
-        if (nHeight == 1)
+        if (nHeight <= 0)
+        nSubsidy = 0;
+
+        else
+        if (nHeight <= 1)
             nSubsidy = 310000000 * COIN; // 310,000,000 coins
-        else if (nHeight >= 2 )
-                nSubsidy = 200 * COIN;
+
+        else
+        if (nHeight >= 2 )
+
+          nSubsidy = 200 * COIN;
 
         std::string cseed_str = prevHash.ToString().substr(5,7);
         const char* cseed = cseed_str.c_str();
