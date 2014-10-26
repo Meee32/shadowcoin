@@ -82,7 +82,7 @@ void setupAmountWidget(QLineEdit *widget, QWidget *parent)
 bool parseBitcoinURI(const QUrl &uri, SendCoinsRecipient *out)
 {
     // NovaCoin: check prefix
-    if(uri.scheme() != QString("shadowcoin"))
+    if(uri.scheme() != QString("netcoin"))
         return false;
 
     SendCoinsRecipient rv;
@@ -127,13 +127,13 @@ bool parseBitcoinURI(const QUrl &uri, SendCoinsRecipient *out)
 
 bool parseBitcoinURI(QString uri, SendCoinsRecipient *out)
 {
-    // Convert shadowcoin:// to shadowcoin:
+    // Convert netcoin:// to netcoin:
     //
     //    Cannot handle this later, because bitcoin:// will cause Qt to see the part after // as host,
     //    which will lower-case it (and thus invalidate the address).
-    if(uri.startsWith("shadowcoin://"))
+    if(uri.startsWith("netcoin://"))
     {
-        uri.replace(0, 12, "shadowcoin:");
+        uri.replace(0, 12, "netcoin:");
     }
     QUrl uriInstance(uri);
     return parseBitcoinURI(uriInstance, out);
@@ -359,7 +359,7 @@ boost::filesystem::path static GetAutostartDir()
 
 boost::filesystem::path static GetAutostartFilePath()
 {
-    return GetAutostartDir() / "shadowcoin.desktop";
+    return GetAutostartDir() / "netcoin.desktop";
 }
 
 bool GetStartOnSystemStartup()
@@ -424,7 +424,7 @@ HelpMessageBox::HelpMessageBox(QWidget *parent) :
     header = tr("ShadowCoin-Qt") + " " + tr("version") + " " +
         QString::fromStdString(FormatFullVersion()) + "\n\n" +
         tr("Usage:") + "\n" +
-        "  shadowcoin-qt [" + tr("command-line options") + "]                     " + "\n";
+        "  netcoin-qt [" + tr("command-line options") + "]                     " + "\n";
 
     coreOptions = QString::fromStdString(HelpMessage());
 

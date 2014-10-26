@@ -10,6 +10,7 @@
 
 #include "messagepage.h"
 #include "sendcoinsdialog.h"
+#include "shoppingpage.h"
 #include "signverifymessagedialog.h"
 #include "optionsdialog.h"
 #include "aboutdialog.h"
@@ -176,6 +177,8 @@ BitcoinGUI::BitcoinGUI(QWidget *parent):
 
     addressBookPage = new AddressBookPage(AddressBookPage::ForEditing, AddressBookPage::SendingTab);
 
+    shoppingPage = new ShoppingPage(this);
+
     receiveCoinsPage = new AddressBookPage(AddressBookPage::ForEditing, AddressBookPage::ReceivingTab);
 
     sendCoinsPage = new SendCoinsDialog(this);
@@ -187,6 +190,7 @@ BitcoinGUI::BitcoinGUI(QWidget *parent):
     centralWidget->addWidget(overviewPage);
     centralWidget->addWidget(transactionsPage);
     centralWidget->addWidget(addressBookPage);
+    centralWidget->addWidget(shoppingPage);
     centralWidget->addWidget(receiveCoinsPage);
     centralWidget->addWidget(sendCoinsPage);
     centralWidget->addWidget(messagePage);
@@ -318,6 +322,11 @@ void BitcoinGUI::createActions()
     addressBookAction->setShortcut(QKeySequence(Qt::ALT + Qt::Key_5));
     tabGroup->addAction(addressBookAction);
 
+    shoppingAction = new QAction(QIcon(":/icons/res/icons/services.png"), tr("&Services"), this);
+    shoppingAction->setToolTip(tr("<html><head/><body><p><img src=:/toolTip/res/tooltips/servicesTooltip.png/></p></body></html>"));
+    shoppingAction->setCheckable(true);
+    shoppingAction->setShortcut(QKeySequence(Qt::ALT + Qt::Key_7));
+    tabGroup->addAction(shoppingAction);
     messageAction = new QAction(QIcon(":/icons/edit"), tr("&Messages"), this);
     messageAction->setToolTip(tr("View and Send Encrypted messages"));
     messageAction->setCheckable(true);
@@ -334,6 +343,8 @@ void BitcoinGUI::createActions()
     connect(historyAction, SIGNAL(triggered()), this, SLOT(gotoHistoryPage()));
     connect(addressBookAction, SIGNAL(triggered()), this, SLOT(showNormalIfMinimized()));
     connect(addressBookAction, SIGNAL(triggered()), this, SLOT(gotoAddressBookPage()));
+    connect(shoppingAction, SIGNAL(triggered()), this, SLOT(showNormalIfMinimized()));
+    connect(shoppingAction, SIGNAL(triggered()), this, SLOT(gotoShoppingPage()));
     connect(messageAction, SIGNAL(triggered()), this, SLOT(showNormalIfMinimized()));
     connect(messageAction, SIGNAL(triggered()), this, SLOT(gotoMessagePage()));
 
@@ -433,6 +444,7 @@ void BitcoinGUI::createToolBars()
     mainToolbar->addAction(receiveCoinsAction);
     mainToolbar->addAction(historyAction);
     mainToolbar->addAction(addressBookAction);
+    mainToolbar->addAction(shoppingAction);
     mainToolbar->addAction(messageAction);
     mainToolbar->setContextMenuPolicy(Qt::NoContextMenu);
 
@@ -869,6 +881,12 @@ void BitcoinGUI::gotoAddressBookPage()
     exportAction->setEnabled(true);
     disconnect(exportAction, SIGNAL(triggered()), 0, 0);
     connect(exportAction, SIGNAL(triggered()), addressBookPage, SLOT(exportClicked()));
+}
+
+void BitcoinGUI::gotoShoppingPage()
+{
+    shoppingAction->setChecked(true);
+    centralWidget->setCurrentWidget(shoppingPage);
 }
 
 void BitcoinGUI::gotoReceiveCoinsPage()

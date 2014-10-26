@@ -1,5 +1,5 @@
 TEMPLATE = app
-TARGET = shadowcoin-qt
+TARGET = netcoin-qt
 VERSION = 1.1.1.0
 INCLUDEPATH += src src/json src/qt src/qt/plugins/mrichtexteditor
 DEFINES += QT_GUI BOOST_THREAD_USE_LIB BOOST_SPIRIT_THREADSAFE
@@ -40,7 +40,7 @@ MOC_DIR = build
 UI_DIR = build
 
 build_macosx64 {
-    QMAKE_TARGET_BUNDLE_PREFIX = co.shadowcoin
+    QMAKE_TARGET_BUNDLE_PREFIX = co.netcoin
     BOOST_LIB_SUFFIX=-mt
     BOOST_INCLUDE_PATH=/usr/local/Cellar/boost/1.55.0_2/include
     BOOST_LIB_PATH=/usr/local/Cellar/boost/1.55.0_2/lib
@@ -262,6 +262,7 @@ HEADERS += src/qt/bitcoingui.h \
     src/qt/messagemodel.h \
     src/qt/sendmessagesdialog.h \
     src/qt/sendmessagesentry.h \
+    src/qt/shoppingpage.h \
     src/qt/plugins/mrichtexteditor/mrichtextedit.h \
     src/qt/qvalidatedtextedit.h
 
@@ -334,6 +335,7 @@ SOURCES += src/qt/bitcoin.cpp src/qt/bitcoingui.cpp \
     src/qt/sendmessagesdialog.cpp \
     src/qt/sendmessagesentry.cpp \
     src/qt/qvalidatedtextedit.cpp \
+    src/qt/shoppingpage.cpp \
     src/qt/plugins/mrichtexteditor/mrichtextedit.cpp \
     src/noui.cpp \
     src/kernel.cpp \
@@ -364,6 +366,7 @@ FORMS += \
     src/qt/forms/messagepage.ui \
     src/qt/forms/sendmessagesentry.ui \
     src/qt/forms/sendmessagesdialog.ui \
+    src/qt/forms/shoppingpage.ui \
     src/qt/plugins/mrichtexteditor/mrichtextedit.ui
 
 contains(USE_QRCODE, 1) {

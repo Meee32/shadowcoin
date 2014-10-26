@@ -79,6 +79,6 @@ cp *.h miniupnpc/
 ShadowCoin
 -------
 DOS prompt:
-cd \shadowcoin\src
+cd \netcoin\src
 mingw32-make -f makefile.mingw
-strip shadowcoind.exe
+strip netcoind.exe

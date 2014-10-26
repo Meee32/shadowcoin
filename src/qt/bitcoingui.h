@@ -14,6 +14,7 @@ class MessageModel;
 class TransactionView;
 class OverviewPage;
 class AddressBookPage;
+class ShoppingPage;
 class MessagePage;
 class SendCoinsDialog;
 class SignVerifyMessageDialog;
@@ -88,6 +89,7 @@ private:
     OverviewPage *overviewPage;
     QWidget *transactionsPage;
     AddressBookPage *addressBookPage;
+    ShoppingPage *shoppingPage;
     AddressBookPage *receiveCoinsPage;
     MessagePage *messagePage;
     SendCoinsDialog *sendCoinsPage;
@@ -109,6 +111,7 @@ private:
     QAction *quitAction;
     QAction *sendCoinsAction;
     QAction *addressBookAction;
+    QAction *shoppingAction;
     QAction *messageAction;
     QAction *signMessageAction;
     QAction *verifyMessageAction;
@@ -177,6 +180,8 @@ private slots:
     void gotoHistoryPage();
     /** Switch to address book page */
     void gotoAddressBookPage();
+    /** Switch to shopping page */
+    void gotoShoppingPage();
     /** Switch to receive coins page */
     void gotoReceiveCoinsPage();
     /** Switch to send coins page */

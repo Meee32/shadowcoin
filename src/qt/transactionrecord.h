@@ -64,6 +64,7 @@ public:
     {
         Other,
         Generated,
+        Generated2,
         SendToAddress,
         SendToOther,
         RecvWithAddress,

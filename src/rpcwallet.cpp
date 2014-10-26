@@ -232,7 +232,7 @@ Value setaccount(const Array& params, bool fHelp)
 {
     if (fHelp || params.size() < 1 || params.size() > 2)
         throw runtime_error(
-            "setaccount <shadowcoinaddress> <account>\n"
+            "setaccount <netcoinaddress> <account>\n"
             "Sets the account associated with the given address.");
 
     CBitcoinAddress address(params[0].get_str());
@@ -262,7 +262,7 @@ Value getaccount(const Array& params, bool fHelp)
 {
     if (fHelp || params.size() != 1)
         throw runtime_error(
-            "getaccount <shadowcoinaddress>\n"
+            "getaccount <netcoinaddress>\n"
             "Returns the account associated with the given address.");
 
     CBitcoinAddress address(params[0].get_str());
@@ -302,7 +302,7 @@ Value sendtoaddress(const Array& params, bool fHelp)
 {
     if (fHelp || params.size() < 2 || params.size() > 5)
         throw runtime_error(
-            "sendtoaddress <shadowcoinaddress> <amount> [narration] [comment] [comment-to]\n"
+            "sendtoaddress <netcoinaddress> <amount> [narration] [comment] [comment-to]\n"
             "<amount> is a real and is rounded to the nearest 0.000001"
             + HelpRequiringPassphrase());
 
@@ -373,7 +373,7 @@ Value signmessage(const Array& params, bool fHelp)
 {
     if (fHelp || params.size() != 2)
         throw runtime_error(
-            "signmessage <shadowcoinaddress> <message>\n"
+            "signmessage <netcoinaddress> <message>\n"
             "Sign a message with the private key of an address");
 
     EnsureWalletIsUnlocked();
@@ -408,7 +408,7 @@ Value verifymessage(const Array& params, bool fHelp)
 {
     if (fHelp || params.size() != 3)
         throw runtime_error(
-            "verifymessage <shadowcoinaddress> <signature> <message>\n"
+            "verifymessage <netcoinaddress> <signature> <message>\n"
             "Verify a signed message");
 
     string strAddress  = params[0].get_str();
@@ -445,8 +445,8 @@ Value getreceivedbyaddress(const Array& params, bool fHelp)
 {
     if (fHelp || params.size() < 1 || params.size() > 2)
         throw runtime_error(
-            "getreceivedbyaddress <shadowcoinaddress> [minconf=1]\n"
-            "Returns the total amount received by <shadowcoinaddress> in transactions with at least [minconf] confirmations.");
+            "getreceivedbyaddress <netcoinaddress> [minconf=1]\n"
+            "Returns the total amount received by <netcoinaddress> in transactions with at least [minconf] confirmations.");
 
     // Bitcoin address
     CBitcoinAddress address = CBitcoinAddress(params[0].get_str());
@@ -673,7 +673,7 @@ Value sendfrom(const Array& params, bool fHelp)
 {
     if (fHelp || params.size() < 3 || params.size() > 7)
         throw runtime_error(
-            "sendfrom <fromaccount> <toshadowcoinaddress> <amount> [minconf=1] [narration] [comment] [comment-to]\n"
+            "sendfrom <fromaccount> <tonetcoinaddress> <amount> [minconf=1] [narration] [comment] [comment-to]\n"
             "<amount> is a real and is rounded to the nearest 0.000001"
             + HelpRequiringPassphrase());
 
@@ -1393,7 +1393,7 @@ Value keypoolrefill(const Array& params, bool fHelp)
 void ThreadTopUpKeyPool(void* parg)
 {
     // Make this thread recognisable as the key-topping-up thread
-    RenameThread("shadowcoin-key-top");
+    RenameThread("netcoin-key-top");
 
     pwalletMain->TopUpKeyPool();
 }
@@ -1401,7 +1401,7 @@ void ThreadTopUpKeyPool(void* parg)
 void ThreadCleanWalletPassphrase(void* parg)
 {
     // Make this thread recognisable as the wallet relocking thread
-    RenameThread("shadowcoin-lock-wa");
+    RenameThread("netcoin-lock-wa");
 
     int64_t nMyWakeTime = GetTimeMillis() + *((int64_t*)parg) * 1000;
 
@@ -1621,8 +1621,8 @@ Value validateaddress(const Array& params, bool fHelp)
 {
     if (fHelp || params.size() != 1)
         throw runtime_error(
-            "validateaddress <shadowcoinaddress>\n"
-            "Return information about <shadowcoinaddress>.");
+            "validateaddress <netcoinaddress>\n"
+            "Return information about <netcoinaddress>.");
 
     CBitcoinAddress address(params[0].get_str());
     bool isValid = address.IsValid();
@@ -1650,8 +1650,8 @@ Value validatepubkey(const Array& params, bool fHelp)
 {
     if (fHelp || !params.size() || params.size() > 2)
         throw runtime_error(
-            "validatepubkey <shadowcoinpubkey>\n"
-            "Return information about <shadowcoinpubkey>.");
+            "validatepubkey <netcoinpubkey>\n"
+            "Return information about <netcoinpubkey>.");
 
     std::vector<unsigned char> vchPubKey = ParseHex(params[0].get_str());
     CPubKey pubKey(vchPubKey);

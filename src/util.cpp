@@ -959,7 +959,7 @@ static std::string FormatException(std::exception* pex, const char* pszThread)
     char pszModule[MAX_PATH] = "";
     GetModuleFileNameA(NULL, pszModule, sizeof(pszModule));
 #else
-    const char* pszModule = "shadowcoin";
+    const char* pszModule = "netcoin";
 #endif
     if (pex)
         return strprintf(
@@ -992,7 +992,7 @@ boost::filesystem::path GetDefaultDataDir()
     // Windows < Vista: C:\Documents and Settings\Username\Application Data\ShadowCoin
     // Windows >= Vista: C:\Users\Username\AppData\Roaming\ShadowCoin
     // Mac: ~/Library/Application Support/ShadowCoin
-    // Unix: ~/.shadowcoin
+    // Unix: ~/.netcoin
 #ifdef WIN32
     // Windows
     return GetSpecialFolderPath(CSIDL_APPDATA) / "ShadowCoin";
@@ -1010,7 +1010,7 @@ boost::filesystem::path GetDefaultDataDir()
     return pathRet / "ShadowCoin";
 #else
     // Unix
-    return pathRet / ".shadowcoin";
+    return pathRet / ".netcoin";
 #endif
 #endif
 }
@@ -1052,7 +1052,7 @@ const boost::filesystem::path &GetDataDir(bool fNetSpecific)
 
 boost::filesystem::path GetConfigFile()
 {
-    boost::filesystem::path pathConfigFile(GetArg("-conf", "shadowcoin.conf"));
+    boost::filesystem::path pathConfigFile(GetArg("-conf", "netcoin.conf"));
     if (!pathConfigFile.is_complete()) pathConfigFile = GetDataDir(false) / pathConfigFile;
     return pathConfigFile;
 }
@@ -1083,7 +1083,7 @@ void ReadConfigFile(map<string, string>& mapSettingsRet,
 
 boost::filesystem::path GetPidFile()
 {
-    boost::filesystem::path pathPidFile(GetArg("-pid", "shadowcoind.pid"));
+    boost::filesystem::path pathPidFile(GetArg("-pid", "netcoind.pid"));
     if (!pathPidFile.is_complete()) pathPidFile = GetDataDir() / pathPidFile;
     return pathPidFile;
 }

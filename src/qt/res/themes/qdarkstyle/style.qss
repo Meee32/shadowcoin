@@ -45,7 +45,7 @@ QWidget
 {
     color: silver;
     background-color: #302F2F;
-    selection-background-color:#78879b;
+    selection-background-color:#FFA500;
     selection-color: black;
     background-clip: border;
     border-image: none;
@@ -55,14 +55,14 @@ QWidget
 QWidget:item:hover
 {
     background-color: QLinearGradient( x1: 0, y1: 0, x2: 0, y2: 1,
-    stop: 0 #78879b, stop: 1 #78879b);
+    stop: 0 #FFA500, stop: 1 #FFA500);
     color: black;
 }
 
 QWidget:item:selected
 {
     background-color: QLinearGradient( x1: 0, y1: 0, x2: 0, y2: 1,
-    stop: 0 #78879b, stop: 1 #78879b);
+    stop: 0 #FFA500, stop: 1 #FFA500);
 }
 
 QMenuBar
@@ -85,7 +85,7 @@ QMenuBar::item:selected
 QMenuBar::item:pressed
 {
     border: 1px solid #3A3939;
-    background-color: #78879b;
+    background-color: #FFA500;
     color: black;
     margin-bottom:-1px;
     padding-bottom:1px;
@@ -351,7 +351,7 @@ QMainWindow::separator:hover
 {
 
     background-color: QLinearGradient(x1:0, y1:0, x2:0, y2:1, stop:0 #58677b,
-      stop:0.5 #78879b stop:1 #58677b);
+      stop:0.5 #FFA500 stop:1 #58677b);
     color: white;
     padding-left: 4px;
     border: 1px solid #3A3939;
@@ -386,7 +386,7 @@ QRadioButton::indicator:checked
     cx: 0.5, cy: 0.5,
     fx: 0.5, fy: 0.5,
     radius: 1.0,
-    stop: 0.25 #78879b,
+    stop: 0.25 #FFA500,
     stop: 0.3 #302F2F
     );
 }
@@ -414,12 +414,12 @@ QRadioButton::indicator
 
 QCheckBox::indicator:pressed
 {
-    border: 1px solid #78879b;
+    border: 1px solid #FFA500;
 }
 
 QRadioButton::indicator:hover, QCheckBox::indicator:hover
 {
-    border: 1px solid #78879b;
+    border: 1px solid #FFA500;
 }
 
 QCheckBox::indicator:checked
@@ -493,7 +493,7 @@ QPushButton:disabled
 
 QComboBox
 {
-    selection-background-color: #78879b;
+    selection-background-color: #FFA500;
     background-color: #201F1F;
     border-style: solid;
     border: 1px solid #3A3939;
@@ -503,7 +503,7 @@ QComboBox
 
 QComboBox:hover,QPushButton:hover,QAbstractSpinBox:hover,QLineEdit:hover,QTextEdit:hover,QPlainTextEdit:hover,QAbstractView:hover,QTreeView:hover
 {
-    border: 1px solid #78879b;
+    border: 1px solid #FFA500;
     color: silver;
 }
 
@@ -521,7 +521,7 @@ QComboBox QAbstractItemView
     border-radius: 3px;
     border: 1px solid #3A3939;
     selection-background-color: QLinearGradient( x1: 0, y1: 0, x2: 0, y2: 1,
-      stop: 0 #78879b, stop: 1 #78879b);
+      stop: 0 #78879b, stop: 1 #FFA500);
 }
 
 QComboBox::drop-down
@@ -799,7 +799,7 @@ QDockWidget::close-button:pressed, QDockWidget::float-button:pressed {
 
 QTreeView, QListView
 {
-    border: 1px solid #78879b;
+    border: 1px solid #FFA500;
     background-color: #201F1F;
 }
 
@@ -954,12 +954,12 @@ QTableView, QHeaderView
 }
 
 QTableView::item:pressed, QListView::item:pressed, QTreeView::item:pressed  {
-    background: #78879b;
+    background: #FFA500;
     color: #FFFFFF;
 }
 
 QTableView::item:selected:active, QTreeView::item:selected:active, QListView::item:selected:active  {
-    background: #78879b;
+    background: #FFA500;
     color: #FFFFFF;
 }
 
