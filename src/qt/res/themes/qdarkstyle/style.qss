@@ -465,6 +465,7 @@ QPushButton
 {
     color: silver;
     background-color: QLinearGradient( x1: 0, y1: 1, x2: 0, y2: 0,
+    background: transparent;
     stop: 0 #302F2F, stop: 1 #484846);
     border-width: 1px;
     border-color: #4A4949;
@@ -613,7 +614,7 @@ QTabWidget::pane {
 QTabBar
 {
     qproperty-drawBase: 0;
-    padding-right: 15px;
+    padding-right: 15px;    
 }
 
 QTabBar:focus

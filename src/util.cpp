@@ -995,7 +995,7 @@ boost::filesystem::path GetDefaultDataDir()
     // Unix: ~/.netcoin
 #ifdef WIN32
     // Windows
-    return GetSpecialFolderPath(CSIDL_APPDATA) / "ShadowCoin";
+    return GetSpecialFolderPath(CSIDL_APPDATA) / "Netcoin";
 #else
     fs::path pathRet;
     char* pszHome = getenv("HOME");
@@ -1007,7 +1007,7 @@ boost::filesystem::path GetDefaultDataDir()
     // Mac
     pathRet /= "Library/Application Support";
     fs::create_directory(pathRet);
-    return pathRet / "ShadowCoin";
+    return pathRet / "Netcoin";
 #else
     // Unix
     return pathRet / ".netcoin";
