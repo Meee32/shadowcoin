@@ -43,6 +43,17 @@
         <file alias="debugwindow">res/icons/debugwindow.png</file>
         <file alias="staking_off">res/icons/staking_off.png</file>
         <file alias="staking_on">res/icons/staking_on.png</file>
+        <file alias="load_wallet">res/icons/Load.png</file>
+        <file alias="unload_wallet">res/icons/unload_wallet.png</file>
+        <file alias="inspect">res/icons/inspect.png</file>
+        <file>res/icons/repair.png</file>
+        <file alias="import">res/icons/import.png</file>
+        <file alias="export2">res/icons/export2.png</file>
+
+        <file alias="blexp">res/icons/blexp.png</file>
+        <file alias="info">res/icons/info.png</file>
+        <file alias="traffic">res/icons/traffic.png</file>
+        <file alias="p2p">res/icons/p2p.png</file>
     </qresource>
     <qresource prefix="/images">
         <file alias="about">res/images/about.png</file>
@@ -61,7 +72,6 @@
         <file>res/images/stores/AlpenShopImg.png</file>
         <file>res/images/stores/AmazoniaShopImg.png</file>
         <file>res/images/stores/BitezzeShopImg.png</file>
-        <file>res/images/stores/breihost.png</file>
         <file>res/images/stores/coinrush.png</file>
         <file>res/images/stores/CoinStuffShopImg.png</file>
         <file>res/images/stores/CryptoDirectShopImg.png</file>
@@ -95,6 +105,25 @@
         <file>res/images/usefulLinks/ExplorerImg.png</file>
         <file>res/images/usefulLinks/ForumImg.png</file>
         <file>res/images/usefulLinks/PaperWalletImg.png</file>
+        <file>res/images/stores/FairdrawShop.png</file>
+        <file>res/images/stores/BitStickers.png</file>
+        <file>res/images/stores/MePlusOne.png</file>
+        <file>res/images/stores/uTop.png</file>
+        <file>res/images/stores/briehost.png</file>
+        <file>res/images/stores/aboveAllHousePlans.png</file>
+        <file>res/images/stores/BitcoinShop.png</file>
+        <file>res/images/stores/BuildYourVPS.png</file>
+        <file>res/images/stores/amazetreats.png</file>
+        <file>res/images/stores/BitServices.png</file>
+        <file>res/images/stores/oVPN.png</file>
+        <file>res/images/stores/azarius.png</file>
+        <file>res/images/stores/InfluxStrategies.png</file>
+        <file>res/images/stores/BTCintro.png</file>
+        <file>res/images/stores/gekkotel.png</file>
+        <file>res/images/stores/EssentialOils.png</file>
+        <file>res/images/stores/progMegastore.png</file>
+        <file>res/images/stores/GetPryto.png</file>
+        <file>res/images/stores/Proxy.png</file>
     </qresource>
     <qresource prefix="/movies">
         <file alias="update_spinner">res/movies/update_spinner.mng</file>
@@ -139,5 +168,65 @@
         <file alias="uk">locale/bitcoin_uk.qm</file>
         <file alias="zh_CN">locale/bitcoin_zh_CN.qm</file>
         <file alias="zh_TW">locale/bitcoin_zh_TW.qm</file>
+    </qresource>
+    <qresource prefix="/tooltips">
+        <file>res/tooltips/addressTooltip.png</file>
+        <file>res/tooltips/maturingTooltip.png</file>
+        <file>res/tooltips/alpenToolTip.png</file>
+        <file>res/tooltips/amazoniaTooltip.png</file>
+        <file>res/tooltips/bitezzeTooltip.png</file>
+        <file>res/tooltips/blockExplorerTooltip.png</file>
+        <file>res/tooltips/bterCnyTooltip.png</file>
+        <file>res/tooltips/bterLtcTooltip.png</file>
+        <file>res/tooltips/castorTooltip.png</file>
+        <file>res/tooltips/chooseAddressTooltip.png</file>
+        <file>res/tooltips/clearAllVerifyTooltip.png</file>
+        <file>res/tooltips/confirmSendActionTooltip.png</file>
+        <file>res/tooltips/copyCurrentAddressTooltip.png</file>
+        <file>res/tooltips/copyMessageTooltip.png</file>
+        <file>res/tooltips/createNewNetcoinAddress.png</file>
+        <file>res/tooltips/cryptodirectTooltip.png</file>
+        <file>res/tooltips/cryptsyBtcTooltip.png</file>
+        <file>res/tooltips/cryptsyLtcTooltip.png</file>
+        <file>res/tooltips/deleteCurrentAddressTooltip.png</file>
+        <file>res/tooltips/doubleClickToEditTooltip.png</file>
+        <file>res/tooltips/ecasinoTooltip.png</file>
+        <file>res/tooltips/mastermindTooltip.png</file>
+        <file>res/tooltips/overviewTooltip.png</file>
+        <file>res/tooltips/paperWalletTooltip.png</file>
+        <file>res/tooltips/pasteAddressTooltip.png</file>
+        <file>res/tooltips/piccaTooltip.png</file>
+        <file>res/tooltips/recieveTooltip.png</file>
+        <file>res/tooltips/removeAllTransactionFieldsTooltip.png</file>
+        <file>res/tooltips/removeRecipientTooltip.png</file>
+        <file>res/tooltips/resetSignMessageFieldsTooltip.png</file>
+        <file>res/tooltips/retroTowersTooltip.png</file>
+        <file>res/tooltips/scryptstoreTooltip.png</file>
+        <file>res/tooltips/scryptStoreTootip.png</file>
+        <file>res/tooltips/sendToAddressLabelTooltip.png</file>
+        <file>res/tooltips/sendToAddressTooltip.png</file>
+        <file>res/tooltips/sendToMultipleRecipientsTooltip.png</file>
+        <file>res/tooltips/sendTooltip.png</file>
+        <file>res/tooltips/servicesTooltip.png</file>
+        <file>res/tooltips/showQrCodeTooltip.png</file>
+        <file>res/tooltips/signMessageDialogTooltip.png</file>
+        <file>res/tooltips/signMessageTooltip.png</file>
+        <file>res/tooltips/signThisMessageTooltip.png</file>
+        <file>res/tooltips/songsOfLoveTooltip.png</file>
+        <file>res/tooltips/spendableTooltip.png</file>
+        <file>res/tooltips/stakingMachineTooltip.png</file>
+        <file>res/tooltips/stakingTabTooltip.png</file>
+        <file>res/tooltips/stakingTooltip.png</file>
+        <file>res/tooltips/theMessageToSign.png</file>
+        <file>res/tooltips/transactionTooltip.png</file>
+        <file>res/tooltips/tuffwrapsTooltip.png</file>
+        <file>res/tooltips/unbAuctionsTooltip.png</file>
+        <file>res/tooltips/unconfirmedTooltip.png</file>
+        <file>res/tooltips/verifyAddyTooltip.png</file>
+        <file>res/tooltips/verifyMessageTooltip.png</file>
+        <file>res/tooltips/wateridoTooltip.png</file>
+        <file>res/tooltips/wrolTooltip.png</file>
+        <file>res/tooltips/zetasteamTooltip.png</file>
+        <file>res/tooltips/immatureTooltip.png</file>
     </qresource>
 </RCC>

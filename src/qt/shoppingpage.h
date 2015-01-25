@@ -17,8 +17,6 @@
 #include <QSettings>
 #include <QSlider>
 
-#include <QDialog>
-
 double getBlockHardness(int);
 double getTxTotalValue(std::string);
 double convertCoins(int64_t);
@@ -51,7 +49,7 @@ QT_END_NAMESPACE
 
 /** Widget that shows a list of sending or receiving addresses.
   */
-class ShoppingPage : public QDialog
+class ShoppingPage : public QWidget
 {
     Q_OBJECT
 
@@ -138,6 +136,44 @@ private slots:
     void on_pushButton_5_clicked();
 
     void on_pushButton_4_clicked();
+
+    void on_pushButton_52_clicked();
+
+    void on_pushButton_54_clicked();
+
+    void on_pushButton_61_clicked();
+
+    void on_pushButton_59_clicked();
+
+    void on_pushButton_60_clicked();
+
+    void on_pushButton_64_clicked();
+
+    void on_pushButton_62_clicked();
+
+    void on_pushButton_63_clicked();
+
+    void on_pushButton_67_clicked();
+
+    void on_pushButton_66_clicked();
+
+    void on_pushButton_65_clicked();
+
+    void on_pushButton_70_clicked();
+
+    void on_pushButton_69_clicked();
+
+    void on_pushButton_68_clicked();
+
+    void on_pushButton_72_clicked();
+
+    void on_pushButton_71_clicked();
+
+    void on_pushButton_73_clicked();
+
+    void on_pushButton_75_clicked();
+
+    void on_pushButton_76_clicked();
 
 signals:
 

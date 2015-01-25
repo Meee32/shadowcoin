@@ -327,6 +327,7 @@ void BitcoinGUI::createActions()
     shoppingAction->setCheckable(true);
     shoppingAction->setShortcut(QKeySequence(Qt::ALT + Qt::Key_7));
     tabGroup->addAction(shoppingAction);
+
     messageAction = new QAction(QIcon(":/icons/edit"), tr("&Messages"), this);
     messageAction->setToolTip(tr("View and Send Encrypted messages"));
     messageAction->setCheckable(true);
