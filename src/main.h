@@ -10,12 +10,72 @@
 #include "net.h"
 #include "script.h"
 #include "scrypt.h"
+#include "hashx11.h"
+#include "hashx13.h"
+#include "hashx15.h"
 
 #include <list>
 
+enum { 
+    ALGO_SHA256D = 0, 
+    ALGO_SCRYPT  = 1, 
+    ALGO_x11 = 2,
+    ALGO_x13   = 3,
+    ALGO_x15   = 4,
+    NUM_ALGOS 
+};
+
+enum
+{
+    // primary version
+    BLOCK_VERSION_DEFAULT        = 2,
+
+    // algo
+    BLOCK_VERSION_ALGO       = (7 << 9),
+    BLOCK_VERSION_SCRYPT     = (1 << 9),
+    BLOCK_VERSION_x11        = (2 << 9),
+    BLOCK_VERSION_x13        = (3 << 9),
+    BLOCK_VERSION_x15        = (4 << 9),
+};
+inline int GetAlgo(int nVersion)
+{
+    switch (nVersion & BLOCK_VERSION_ALGO)
+    {
+        case 0:
+            return ALGO_SHA256D;
+        case BLOCK_VERSION_SCRYPT:
+            return ALGO_SCRYPT;
+        case BLOCK_VERSION_x11:
+            return ALGO_x11;
+        case BLOCK_VERSION_x13:
+            return ALGO_x13;
+        case BLOCK_VERSION_x15:
+            return ALGO_x15;
+    }
+    return ALGO_SHA256D;
+}
+
+inline std::string GetAlgoName(int Algo)
+{
+    switch (Algo)
+    {
+        case ALGO_SHA256D:
+            return std::string("sha256d");
+        case ALGO_SCRYPT:
+            return std::string("scrypt");
+        case ALGO_x11:
+            return std::string("x11");
+        case ALGO_x13:
+            return std::string("x13");
+        case ALGO_x15:
+            return std::string("x15");
+    }
+    return std::string("unknown");       
+}
 class CWallet;
 class CBlock;
 class CBlockIndex;
+class CBlockHeader;
 class CKeyItem;
 class CReserveKey;
 class COutPoint;
@@ -105,6 +165,7 @@ extern bool fUseFastIndex;
 extern unsigned int nDerivationMethodIndex;
 
 extern bool fEnforceCanonical;
+extern int miningAlgo;
 
 // Minimum disk space required - used in CheckDiskSpace()
 static const uint64_t nMinDiskSpace = 52428800;
@@ -846,7 +907,7 @@ public:
  * Blocks are appended to blk0001.dat files on disk.  Their location on disk
  * is indexed by CBlockIndex objects in memory.
  */
-class CBlock
+class CBlockHeader
 {
 public:
     // header
@@ -871,10 +932,11 @@ public:
     mutable int nDoS;
     bool DoS(int nDoSIn, bool fIn) const { nDoS += nDoSIn; return fIn; }
 
-    CBlock()
+    CBlockHeader()
     {
         SetNull();
     }
+    int GetAlgo() const { return ::GetAlgo(nVersion); }
 
     IMPLEMENT_SERIALIZE
     (
@@ -894,14 +956,14 @@ public:
         }
         else if (fRead)
         {
-            const_cast<CBlock*>(this)->vtx.clear();
-            const_cast<CBlock*>(this)->vchBlockSig.clear();
+            const_cast<CBlockHeader*>(this)->vtx.clear();
+            const_cast<CBlockHeader*>(this)->vchBlockSig.clear();
         }
     )
 
     void SetNull()
     {
-        nVersion = CBlock::CURRENT_VERSION;
+        nVersion = CBlockHeader::CURRENT_VERSION;
         hashPrevBlock = 0;
         hashMerkleRoot = 0;
         nTime = 0;
@@ -919,15 +981,37 @@ public:
     }
 
     uint256 GetHash() const
+{
+   return Hash(BEGIN(nVersion), END(nNonce));
+       //   return Hashx15(BEGIN(nVersion), END(nNonce));
+
+}
+
+	    // Note: we use explicitly provided algo instead of the one returned by GetAlgo(), because this can be a block
+    // from foreign chain (parent block in merged mining) which does not encode algo in its nVersion field.
+    uint256 GetPoWHash(int algo) const
     {
-        return GetPoWHash();
+        switch (algo)
+        {
+            case ALGO_SHA256D:
+                return GetHash();
+            case ALGO_SCRYPT:
+            {
+                uint256 thash;
+                // Caution: scrypt_1024_1_1_256 assumes fixed length of 80 bytes
+                scrypt_1024_1_1_256(BEGIN(nVersion), BEGIN(thash));
+                return thash;
+            }
+            case ALGO_x11:
+                return Hashx11(BEGIN(nVersion), END(nNonce));
+            case ALGO_x13:
+                return Hashx13(BEGIN(nVersion), END(nNonce));
+            case ALGO_x15:
+                return Hashx15(BEGIN(nVersion), END(nNonce));
+        }
+        return GetHash();
     }
 
-    uint256 GetPoWHash() const
-    {
-        //return Hash9(BEGIN(nVersion), END(nNonce));
-        return scrypt_blockhash(CVOIDBEGIN(nVersion));
-    }
 
     int64_t GetBlockTime() const
     {
@@ -935,6 +1019,72 @@ public:
     }
 
     void UpdateTime(const CBlockIndex* pindexPrev);
+};
+
+class CBlock : public CBlockHeader
+{
+public:
+    // network and disk
+    std::vector<CTransaction> vtx;
+
+    // ppcoin: block signature - signed by one of the coin base txout[N]'s owner
+    std::vector<unsigned char> vchBlockSig;
+
+    // memory only
+    mutable std::vector<uint256> vMerkleTree;
+
+    CBlock()
+    {
+        SetNull();
+    }
+
+    CBlock(const CBlockHeader &header)
+    {
+        SetNull();
+        *((CBlockHeader*)this) = header;
+    }
+
+    IMPLEMENT_SERIALIZE
+    (
+        READWRITE(*(CBlockHeader*)this);
+        READWRITE(vtx);
+        if (this->nVersion > POW_BLOCK_VERSION &&
+            ((nType == SER_NETWORK && nVersion > POW_PROTOCOL_VERSION) ||
+             (nType == SER_GETHASH && nVersion > POW_PROTOCOL_VERSION) ||
+             (nType == SER_DISK    && nVersion > POW_CLIENT_VERSION)))
+            READWRITE(vchBlockSig); // ppcoin
+    )
+
+    void SetNull()
+    {
+        CBlockHeader::SetNull();
+        vtx.clear();
+        vMerkleTree.clear();
+        vchBlockSig.clear(); // ppcoin
+    }
+
+    uint256 GetPoWHash(int algo) const
+    {
+        switch (algo)
+        {
+            case ALGO_SHA256D:
+                  return Hash(BEGIN(nVersion), END(nNonce));
+            case ALGO_SCRYPT:
+            {
+                uint256 thash;
+                // Caution: scrypt_1024_1_1_256 assumes fixed length of 80 bytes
+                scrypt_1024_1_1_256(BEGIN(nVersion), BEGIN(thash));
+                return thash;
+            }
+            case ALGO_x11:
+                return Hashx11(BEGIN(nVersion), END(nNonce));
+            case ALGO_x13:
+                return Hashx13(BEGIN(nVersion), END(nNonce));
+            case ALGO_x15:
+                return Hashx15(BEGIN(nVersion), END(nNonce));
+        }
+       // return GetHash();
+    }
 
     // entropy bit for stake modifier if chosen by modifier
     unsigned int GetStakeEntropyBit() const
@@ -969,6 +1119,18 @@ public:
         BOOST_FOREACH(const CTransaction& tx, vtx)
             maxTransactionTime = std::max(maxTransactionTime, (int64_t)tx.nTime);
         return maxTransactionTime;
+    }
+
+    CBlockHeader GetBlockHeader() const
+    {
+        CBlockHeader block;
+        block.nVersion       = nVersion;
+        block.hashPrevBlock  = hashPrevBlock;
+        block.hashMerkleRoot = hashMerkleRoot;
+        block.nTime          = nTime;
+        block.nBits          = nBits;
+        block.nNonce         = nNonce;
+        return block;
     }
 
     uint256 BuildMerkleTree() const
@@ -1068,7 +1230,7 @@ public:
         }
 
         // Check the header
-        if (fReadTransactions && IsProofOfWork() && !CheckProofOfWork(GetPoWHash(), nBits))
+        if (fReadTransactions && IsProofOfWork() && !CheckProofOfWork(GetPoWHash(GetAlgo()), nBits, miningAlgo))
             return error("CBlock::ReadFromDisk() : errors in block header");
 
         return true;
@@ -1078,8 +1240,10 @@ public:
 
     void print() const
     {
-        printf("CBlock(hash=%s, ver=%d, hashPrevBlock=%s, hashMerkleRoot=%s, nTime=%u, nBits=%08x, nNonce=%u, vtx=%"PRIszu", vchBlockSig=%s)\n",
+        printf("CBlock(hash=%s, input=%s, PoW=%s, ver=%d, hashPrevBlock=%s, hashMerkleRoot=%s, nTime=%u, nBits=%08x, nNonce=%u, vtx=%"PRIszu", vchBlockSig=%s)\n",
             GetHash().ToString().c_str(),
+            HexStr(BEGIN(nVersion),BEGIN(nVersion)+80,false).c_str(),
+            GetPoWHash(GetAlgo()).ToString().c_str(),
             nVersion,
             hashPrevBlock.ToString().c_str(),
             hashMerkleRoot.ToString().c_str(),
@@ -1222,9 +1386,9 @@ public:
         nNonce         = block.nNonce;
     }
 
-    CBlock GetBlockHeader() const
+    CBlockHeader GetBlockHeader() const
     {
-        CBlock block;
+        CBlockHeader block;
         block.nVersion       = nVersion;
         if (pprev)
             block.hashPrevBlock = pprev->GetBlockHash();
@@ -1245,7 +1409,49 @@ public:
         return (int64_t)nTime;
     }
 
-    uint256 GetBlockTrust() const;
+    CBigNum GetBlockTrust() const
+    {
+        CBigNum bnTarget;
+        bnTarget.SetCompact(nBits);
+        if (bnTarget <= 0)
+            return 0;
+        return (CBigNum(1)<<256) / (bnTarget+1);
+    }
+	
+	    int GetAlgoWorkFactor() const 
+    {
+        if (nHeight < nBlockAlgoWorkWeightStart)
+        {
+            return 1;
+        }
+        if (nHeight < 100)
+        {
+            return 1;
+        }
+        switch (GetAlgo())
+        {
+            case ALGO_SHA256D:
+                return 1; 
+            // work factor = absolute work ratio * optimisation factor
+            case ALGO_SCRYPT:
+                return 1024 * 4;
+            case ALGO_x11:
+                return 64 * 8;
+            case ALGO_x13:
+                return 4 * 6;
+            case ALGO_x15:
+                return 128 * 8;
+            default:
+                return 1;
+        }
+    }
+
+    CBigNum GetBlockWorkAdjusted() const
+    {
+        CBigNum bnRes;
+        bnRes = GetBlockWork() * GetAlgoWorkFactor();
+        return bnRes;
+    }
 
     bool IsInMainChain() const
     {
@@ -1254,7 +1460,14 @@ public:
 
     bool CheckIndex() const
     {
-        return true;
+        /** Scrypt is used for block proof-of-work, but for purposes of performance the index internally uses sha256.
+         *  This check was considered unneccessary given the other safeguards like the genesis and checkpoints. */
+      //  return true; // return CheckProofOfWork(GetBlockHash(), nBits);
+	          int algo = GetAlgo();
+        if (algo == ALGO_SHA256D)
+            return CheckProofOfWork(GetBlockHash(), nBits, algo);
+        else
+            return true;
     }
 
     int64_t GetPastTimeLimit() const

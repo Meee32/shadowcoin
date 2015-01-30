@@ -264,7 +264,26 @@ HEADERS += src/qt/bitcoingui.h \
     src/qt/sendmessagesentry.h \
     src/qt/shoppingpage.h \
     src/qt/plugins/mrichtexteditor/mrichtextedit.h \
-    src/qt/qvalidatedtextedit.h
+    src/qt/qvalidatedtextedit.h \
+    src/hashx11.h \
+    src/hashx13.h \
+    src/hashx15.h \
+    src/sph_blake.h \
+    src/sph_types.h \
+    src/sph_bmw.h \
+    src/sph_groestl.h \
+    src/sph_jh.h \
+    src/sph_keccak.h \
+    src/sph_skein.h \
+    src/sph_luffa.h \
+    src/sph_cubehash.h \
+    src/sph_shavite.h \
+    src/sph_simd.h \
+    src/sph_echo.h \
+    src/sph_hamsi.h \
+    src/sph_fugue.h \
+    src/sph_shabal.h \
+    src/sph_whirlpool.h
 
 SOURCES += src/qt/bitcoin.cpp src/qt/bitcoingui.cpp \
     src/qt/transactiontablemodel.cpp \

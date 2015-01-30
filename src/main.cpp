@@ -74,6 +74,7 @@ const string strMessageMagic = "ShadowCoin Signed Message:\n";
 int64_t nTransactionFee = MIN_TX_FEE;
 int64_t nReserveBalance = 0;
 int64_t nMinimumInputValue = 0;
+int miningAlgo = ALGO_SCRYPT;
 
 extern enum Checkpoints::CPMode CheckpointsMode;
 

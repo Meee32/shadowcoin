@@ -25,6 +25,9 @@ extern const std::string CLIENT_DATE;
 // database format versioning
 //
 static const int DATABASE_VERSION = 70509;
+static const int POW_CLIENT_VERSION = 1020100;
+static const int POW_PROTOCOL_VERSION = 70003;
+static const int POW_BLOCK_VERSION = 2;
 
 //
 // network protocol versioning
