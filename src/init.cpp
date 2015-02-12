@@ -5,7 +5,6 @@
 #include "txdb.h"
 #include "walletdb.h"
 #include "bitcoinrpc.h"
-#include "miner.h"
 #include "net.h"
 #include "init.h"
 #include "util.h"
@@ -451,33 +450,6 @@ bool AppInit2()
         // Rewrite just private keys: rescan to find transactions
         SoftSetBoolArg("-rescan", true);
     }
-
-// Algo
-    std::string strAlgo = GetArg("-algo", "sha256d");
-    transform(strAlgo.begin(),strAlgo.end(),strAlgo.begin(),::tolower);
-    if (strAlgo == "sha" || strAlgo == "sha256" || strAlgo == "sha256d")
-        miningAlgo = ALGO_SHA256D;
-    else if (strAlgo == "scrypt")
-        miningAlgo = ALGO_SCRYPT;
-    else if (strAlgo == "x11" || strAlgo == "x11")
-        miningAlgo = ALGO_x11;
-    else if (strAlgo == "x13" || strAlgo == "x13")
-        miningAlgo = ALGO_x13;
-    else if (strAlgo == "x15" || strAlgo == "x15")
-        miningAlgo = ALGO_x15;
-    else
-        miningAlgo = ALGO_SHA256D;
-        
-
-    // Make sure enough file descriptors are available
-    int nBind = std::max((int)mapArgs.count("-bind"), 1);
-    nMaxConnections = GetArg("-maxconnections", 125);
-    nMaxConnections = std::max(std::min(nMaxConnections, (int)(FD_SETSIZE - nBind - MIN_CORE_FILEDESCRIPTORS)), 0);
-    int nFD = RaiseFileDescriptorLimit(nMaxConnections + MIN_CORE_FILEDESCRIPTORS);
-    if (nFD < MIN_CORE_FILEDESCRIPTORS)
-        return InitError(_("Not enough file descriptors available."));
-    if (nFD - MIN_CORE_FILEDESCRIPTORS < nMaxConnections)
-        nMaxConnections = nFD - MIN_CORE_FILEDESCRIPTORS;
 
     // ********************************************************* Step 3: parameter-to-internal-flags
 
